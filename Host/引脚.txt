@@ -1,0 +1,12 @@
+OLED   (3.3V)
+	PB6 -> SCL          ；         PB7 -> SDA
+
+KEY1（PB0）
+
+
+STM32(UART1)  (4G)
+	PA10(RX)         ;		PA9(TX）
+	PA1(低) -> AUX
+
+STM32(UART3)   (LORA)   (5V)
+	UART3            PB10(TX) 	PB11(RX)

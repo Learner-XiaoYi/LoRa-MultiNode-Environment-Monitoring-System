@@ -1,0 +1,22 @@
+从机
+
+OLED   (3.3V)
+	PB6 -> SCL          ；         PB7 -> SDA
+
+DH11  (3.3v)
+	PA5 (单总线)
+
+MQ135 (5V)
+	PA3(ADC in 8)
+
+光敏  (3.3V)
+	PA4(ADC_in9)
+
+
+
+STM32(UART3)   (LORA)   (5V)
+	UART3            PB10(TX) 	PB11(RX)
+
+
+STM32(UART1)  (ld6001)   (5v)
+	PA10(RX)         ;		PA9(TX）
