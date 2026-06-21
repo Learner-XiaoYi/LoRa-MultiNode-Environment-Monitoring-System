@@ -2,9 +2,16 @@
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+	static uint16_t ack_tm = 0; 
 	if(htim -> Instance == TIM2)
 	{
 		key_tick ++; //°´¼ü¼ÆÊı
+		ack_tm ++;
+		if(ack_tm >= 3000)  
+		{
+			ack_flg = 1;
+			ack_tm = 0;
+		}
 	}
 }
 
