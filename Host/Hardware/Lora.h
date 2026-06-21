@@ -13,6 +13,7 @@
 typedef struct{
     char id_buffer[56]; //设备物理地址
     int id;    //设备ID
+		uint8_t is_confirmed;    // 0=未确认，1=已收到ACK
     uint8_t id_temp; //接收来自从机的温度
 		uint8_t id_humi;//接收来自从机的湿度
 		float id_ppm;           // 气体浓度 (ppm)
@@ -20,7 +21,7 @@ typedef struct{
 		uint16_t id_people;//接收来自从机的人数
 }DeviceData_t;
 
-
+extern volatile uint8_t ack_flg;
 extern uint16_t total_user_count;//已分配用户数
 extern DeviceData_t dev_arr[MAX_DEVICE_COUNT];
 

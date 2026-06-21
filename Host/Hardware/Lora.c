@@ -20,6 +20,7 @@ void DevArr_Init(void)
         memset(dev_arr[i].id_buffer, 0, UID_STR_MAX_LEN);
         dev_arr[i].id = -1;
         // 初始化传感器数据为0
+				dev_arr[i].is_confirmed = 0;
         dev_arr[i].id_temp = 0;
         dev_arr[i].id_humi = 0;
         dev_arr[i].id_ppm = 0.0;
@@ -103,7 +104,7 @@ void uart1_rx_init(void)
 	 // 初始化环形缓冲区
     ringbuffer_init(&uart1_rb);
 		
-		//扩展，空闲中断	
+		//空闲中断	
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart1,uart1_rx_buffer,sizeof(uart1_rx_buffer));
 
 }
@@ -120,6 +121,8 @@ void IDR_IP_init(void)
     }
 }
 
+
+volatile uint8_t ack_flg = 0;
 void uart1_show(void) 
 {
     int dev_index = 0; //数组索引
@@ -135,6 +138,16 @@ void uart1_show(void)
     {
         return;
     }
+//				// 定时扫描所有设备
+//		for (int i = 0; i < total_user_count; i++) 
+//		{
+//			//3s触发一次
+//				if (ack_flg) 	
+//				{
+//					ack_flg = 0;
+//					
+//				}
+//		}
 		
 	// 获取可读数据量
     uint32_t available = ringbuffer_available(&uart1_rb);
@@ -166,6 +179,29 @@ void uart1_show(void)
             IDR_IP_index ++;//分配用户号+1 /索引/用于ID加一
             uart1_printf("%s",id_buffer);
         }
+	
+/*-----------------------------接收从机第一次ACK -----------ACK:0001------------------*/				
+				char *ACK_key = strstr((char *)uart1_process_buffer, "ACK:");
+				if(ACK_key != NULL)
+				{
+						// 提取 ACK 后面的 ID 号
+						int ack_id = atoi(ACK_key + 4);   // "ACK:" 长度为4
+
+						// 遍历当前已分配的设备表，找到匹配 ID
+						for (int i = 0; i < total_user_count; i++) 
+						{
+									if (dev_arr[i].id == ack_id) 	
+									{
+											dev_arr[i].is_confirmed = 1;   // 确认应答
+											//回复从机，告知注册最终成功
+											char final_ack_buf[32];
+											sprintf(final_ack_buf, "ack:ok id:%04d", ack_id);
+											uart1_printf("%s", final_ack_buf);  // 通过LoRa发回给从机
+											return ;
+									}
+							}
+				}
+							
 /*-------------------------------id解析--------------------------------------------*/
             char *id_key = strstr((char *)uart1_process_buffer,"id:");
             if(id_key != NULL)
@@ -176,8 +212,10 @@ void uart1_show(void)
                 dev_index = id_test - 1;//计算设备索引
 							  if (dev_index >= 0 && dev_index < total_user_count)
 								{
-									dev_arr[dev_index].id = id_test; //存储id
-									
+									if(dev_arr[dev_index].is_confirmed == 1)
+									{
+										dev_arr[dev_index].id = id_test; //存储id
+									}
 									
 									/*---------------------temp温度处理解析--------------------------------------------*/
 									char *temp_key = strstr((char *)uart1_process_buffer,"temp:");
